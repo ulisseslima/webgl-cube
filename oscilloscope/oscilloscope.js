@@ -91,4 +91,3 @@ function findFirstPositiveZeroCrossing(buf, buflen) {
 
   return last_zero;
 }
-

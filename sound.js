@@ -34,11 +34,9 @@ var source;
 var stream;
 
 // grab the mute button to use below
-
 var mute = document.querySelector('.mute');
 
 //set up the different audio nodes we will use for the app
-
 var analyser = audioCtx.createAnalyser();
 analyser.minDecibels = -90;
 analyser.maxDecibels = -10;
@@ -51,7 +49,6 @@ var convolver = audioCtx.createConvolver();
 
 // distortion curve for the waveshaper, thanks to Kevin Ennis
 // http://stackoverflow.com/questions/22312841/waveshaper-node-in-webaudio-how-to-emulate-distortion
-
 function makeDistortionCurve(amount) {
   var k = typeof amount === 'number' ? amount : 50,
     n_samples = 44100,
@@ -67,15 +64,12 @@ function makeDistortionCurve(amount) {
 };
 
 // grab audio track via XHR for convolver node
-
 var soundSource;
 
 ajaxRequest = new XMLHttpRequest();
 
 ajaxRequest.open('GET', 'https://mdn.github.io/voice-change-o-matic/audio/concert-crowd.ogg', true);
-
 ajaxRequest.responseType = 'arraybuffer';
-
 
 ajaxRequest.onload = function() {
   var audioData = ajaxRequest.response;
@@ -93,20 +87,16 @@ ajaxRequest.onload = function() {
 ajaxRequest.send();
 
 // set up canvas context for visualizer
-
 var canvas = document.querySelector('.visualizer');
 var canvasCtx = canvas.getContext("2d");
-
 var intendedWidth = document.querySelector('.wrapper').clientWidth;
 
 canvas.setAttribute('width',intendedWidth);
 
 var visualSelect = document.getElementById("visual");
-
-var drawVisual;
+var frameId;
 
 //main block for doing the audio recording
-
 if (navigator.mediaDevices.getUserMedia) {
    console.log('getUserMedia supported.');
    var constraints = {audio: true}
@@ -133,11 +123,10 @@ function visualize() {
   WIDTH = canvas.width;
   HEIGHT = canvas.height;
 
-
   var visualSetting = visualSelect.value;
   console.log(visualSetting);
 
-  if(visualSetting === "sinewave") {
+  if (visualSetting === "sinewave") {
     analyser.fftSize = 2048;
     var bufferLength = analyser.fftSize;
     console.log(bufferLength);
@@ -146,8 +135,7 @@ function visualize() {
     canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
 
     var draw = function() {
-
-      drawVisual = requestAnimationFrame(draw);
+      frameId = requestAnimationFrame(draw);
 
       analyser.getByteTimeDomainData(dataArray);
 
@@ -162,12 +150,11 @@ function visualize() {
       var sliceWidth = WIDTH * 1.0 / bufferLength;
       var x = 0;
 
-      for(var i = 0; i < bufferLength; i++) {
-
+      for (let i = 0; i < bufferLength; i++) {
         var v = dataArray[i] / 128.0;
         var y = v * HEIGHT/2;
 
-        if(i === 0) {
+        if (i === 0) {
           canvasCtx.moveTo(x, y);
         } else {
           canvasCtx.lineTo(x, y);
@@ -181,8 +168,7 @@ function visualize() {
     };
 
     draw();
-
-  } else if(visualSetting == "frequencybars") {
+  } else if (visualSetting == "frequencybars") {
     analyser.fftSize = 256;
     var bufferLengthAlt = analyser.frequencyBinCount;
     console.log(bufferLengthAlt);
@@ -191,7 +177,7 @@ function visualize() {
     canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
 
     var drawAlt = function() {
-      drawVisual = requestAnimationFrame(drawAlt);
+      frameId = requestAnimationFrame(drawAlt);
 
       analyser.getByteFrequencyData(dataArrayAlt);
 
@@ -202,7 +188,7 @@ function visualize() {
       var barHeight;
       var x = 0;
 
-      for(var i = 0; i < bufferLengthAlt; i++) {
+      for (let i = 0; i < bufferLengthAlt; i++) {
         barHeight = dataArrayAlt[i];
 
         canvasCtx.fillStyle = 'rgb(' + (barHeight+100) + ',50,50)';
@@ -213,32 +199,29 @@ function visualize() {
     };
 
     drawAlt();
-
   } else if(visualSetting == "off") {
     canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
     canvasCtx.fillStyle = "red";
     canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
   }
-
 }
 
 function voiceChange() {
-
   distortion.oversample = '4x';
   biquadFilter.gain.setTargetAtTime(0, audioCtx.currentTime, 0)
 
   var voiceSetting = voiceSelect.value;
   console.log(voiceSetting);
 
-  //when convolver is selected it is connected back into the audio path
-  if(voiceSetting == "convolver") {
+  // when convolver is selected it is connected back into the audio path
+  if (voiceSetting == "convolver") {
     biquadFilter.disconnect(0);
     biquadFilter.connect(convolver);
   } else {
     biquadFilter.disconnect(0);
     biquadFilter.connect(gainNode);
 
-    if(voiceSetting == "distortion") {
+    if (voiceSetting == "distortion") {
       distortion.curve = makeDistortionCurve(400);
     } else if(voiceSetting == "biquad") {
       biquadFilter.type = "lowshelf";
@@ -251,9 +234,8 @@ function voiceChange() {
 }
 
 // event listeners to change visualize and voice settings
-
 visualSelect.onchange = function() {
-  window.cancelAnimationFrame(drawVisual);
+  window.cancelAnimationFrame(frameId);
   visualize();
 };
 
@@ -264,7 +246,7 @@ voiceSelect.onchange = function() {
 mute.onclick = voiceMute;
 
 function voiceMute() {
-  if(mute.id === "") {
+  if (mute.id === "") {
     gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0)
     mute.id = "activated";
     mute.innerHTML = "Unmute";

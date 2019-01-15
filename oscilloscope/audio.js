@@ -24,7 +24,7 @@ function setupAudio( obj ) {
             audioSource.connect(audioContext.destination);
             audioSource.connect(obj.analyser);
             audioSource.start();
-            console.log("- ok 11");
+            console.log("wav sample loaded");
         });
     });
 }
