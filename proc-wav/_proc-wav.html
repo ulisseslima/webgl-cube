@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Procedural Waveforms</title>
+		<script src="../three.js"></script>
+		<script src="../webgl.js"></script>
+		<style>@import url("../reset.css");</style>
+		<style>@import url("../webgl.css");</style>
+	</head>
+	<body>
+		<script>
+		let fov = 75, aspect_ratio = window.innerWidth / window.innerHeight;
+		let resolution = {x: window.innerWidth*0.8, y: window.innerHeight*0.8};
+
+		let scene = new THREE.Scene();
+		let camera = new THREE.PerspectiveCamera(fov, aspect_ratio);
+		let renderer = new THREE.WebGLRenderer({antialias: true});
+		
+		renderer.setSize(resolution.x, resolution.y);
+
+		WEBGL.display();
+
+		let geometry = new THREE.BoxGeometry(1, 1, 1);
+		let material = new THREE.MeshLambertMaterial({color: 0x10a315});
+		let cube = new THREE.Mesh(geometry, material);
+		let light = new THREE.PointLight(0xFFFF00);
+		
+		light.position.set(25, 25, 25);
+
+		scene.add(cube);
+		scene.add(light);
+
+		cube.position.z = -5;
+
+		let loop = () => {
+			cube.rotation.x += 0.01;
+
+			renderer.render(scene, camera);
+			requestAnimationFrame(loop);
+		}; loop();
+		</script>
+	</body>
+</html>
