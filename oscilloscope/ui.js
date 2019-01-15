@@ -1,9 +1,13 @@
 // shim layer with setTimeout fallback
 window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
 
-function pushme() {
-  pwmOsc.stop(0);
-  //window.cancelAnimationFrame(rafID);
+function stop() {
+	//window.cancelAnimationFrame(rafID);
+	if (capturer) {
+		console.log("stopping capture");
+		capturer.stop();
+		capturer.save();
+	}
 }
 
 var rafID;
@@ -12,9 +16,9 @@ var scopeCanvas = null;
 var freqCanvas = null;
 
 var freqdata = {
-	min: null,
-	max: null,
-	avg: null,
+	min: 999,
+	max: -1,
+	avg: -1,
 	relmin: null,
 	relmax: null,
 	relavg: null,
@@ -49,19 +53,6 @@ function drawFreqBars(analyser, context) {
     context.fillStyle = "hsl(" + Math.round((i*360)/numBars) + ", 100%, 50%)";
     context.fillRect(i * SPACING, canvasHeight, BAR_WIDTH, -magnitude);
   }
-}
-
-function draw() {  
-  if (myOscilloscope) {
-	myOscilloscope.draw(scopeCanvas.myContext);
-	
-	if (freqCanvas) {
-		drawFreqBars(myOscilloscope.analyser, freqCanvas.context);
-		loop3d(myOscilloscope.analyser);
-	}
-  }
-
-  rafID = requestAnimationFrame(draw);
 }
 
 function setupCanvases(container) {
@@ -119,33 +110,48 @@ function loop3d(analyser) {
 	
 	let currfreq = freqByteData[0];
 	
-	if (freqdata.min == null || freqdata.min > currfreq) freqdata.min = currfreq;
-	if (freqdata.max == null || freqdata.max < currfreq) freqdata.max = currfreq;
+	if (freqdata.min > currfreq) freqdata.min = currfreq;
+	if (freqdata.max < currfreq) freqdata.max = currfreq;
 	
-	if (freqdata.avg == null) freqdata.avg = currfreq;
+	if (freqdata.avg == -1) freqdata.avg = currfreq;
 	else {freqdata.avg += currfreq; freqdata.avg /= 2;}
 
-	let diff = scale(currfreq, {min:0, max:256}, {min:-0.1, max:0.1});
-	log("diff: "+diff+", curr: "+currfreq+", ", freqdata);
+	let diff = scale(currfreq, {min:0, max:(freqdata.max+10)}, {min:-0.01, max:0.2});
 	
 	cube.rotation.x += diff;
 	renderer.render(scene, camera);
+
+	log("13 diff: "+diff+", curr: "+currfreq+", max: "+freqdata.max+", min: "+freqdata.min+", avg: "+freqdata.avg);
 }
 
 function init() {
-  setupCanvases();
-  setupAudio(scopeCanvas);
-  init3d();
+	setupCanvases();
+	setupAudio(scopeCanvas);
+	init3d();
   
-  draw();
+	// capturer = new CCapture( { format: 'webm' } );
+	// capturer.start();
+	
+	draw();
 }
 
-// webgl fresco, melhor init com user action
-// window.addEventListener("load", init);
+function draw() {  
+	if (myOscilloscope) {
+		myOscilloscope.draw(scopeCanvas.myContext);
+	
+		if (freqCanvas) {
+			drawFreqBars(myOscilloscope.analyser, freqCanvas.context);
+			loop3d(myOscilloscope.analyser);
+		}
+	}
+
+	rafID = requestAnimationFrame(draw);
+	// WEBGL.render(capturer);
+}
 
 function play() {
 	if (!audioContext || !audioSource) return;
 	
 	audioSource.start();
-//	audioContext.resume();}
+	// audioContext.resume();}
 }

@@ -36,14 +36,14 @@ const scale = (num, input, out) => {
 }
 
 function now() {
-	return new Date().getTime();
+	return Date.now();
 }
 
 // logs at most every LOG_INTERVAL
-function log() {
+function log(o) {
 	let n = now();
 	if (n - LAST_LOG > LOG_INTERVAL) {
-		console.log(arguments);
+		console.log(o);
 		LAST_LOG = n;
 	}
 }

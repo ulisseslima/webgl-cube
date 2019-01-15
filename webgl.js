@@ -54,9 +54,15 @@ var WEBGL = {
 	},
 	display: () => {
 		if (renderer) {
+			renderer.domElement.id = "video";
 			document.querySelector("body").appendChild(renderer.domElement);
 		} else {
 			console.log("no 'renderer' object found");
+		}
+	},
+	render: (capturer) => {
+		if (capturer && renderer) {
+			capturer.capture(renderer.domElement);
 		}
 	}
 };
